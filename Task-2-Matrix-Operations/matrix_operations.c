@@ -2,230 +2,159 @@
 
 #define MAX 10
 
-void printLine()
+static void clearInputBuffer(void)
 {
-    printf("==========================================\n");
-}
-
-void inputMatrix(int matrix[MAX][MAX], int rows, int cols, const char name[])
-{
-    int i, j;
-
-    printf("\nEnter values for %s:\n", name);
-    printf("------------------------------------------\n");
-
-    for (i = 0; i < rows; i++)
-    {
-        for (j = 0; j < cols; j++)
-        {
-            printf("%s[%d][%d] = ", name, i + 1, j + 1);
-            scanf("%d", &matrix[i][j]);
-        }
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF) {
     }
 }
 
-void displayMatrix(int matrix[MAX][MAX], int rows, int cols)
+static int readInt(const char *prompt, int *value)
+{
+    printf("%s", prompt);
+    if (scanf("%d", value) != 1) {
+        clearInputBuffer();
+        return 0;
+    }
+    clearInputBuffer();
+    return 1;
+}
+
+static int readDimensions(const char *name, int *rows, int *cols)
+{
+    printf("\n%s\n", name);
+    if (!readInt("Rows    : ", rows) || !readInt("Columns : ", cols)) {
+        printf("Invalid input. Rows and columns must be whole numbers.\n");
+        return 0;
+    }
+    if (*rows < 1 || *rows > MAX || *cols < 1 || *cols > MAX) {
+        printf("Invalid dimensions. Use values from 1 to %d.\n", MAX);
+        return 0;
+    }
+    return 1;
+}
+
+static int inputMatrix(int matrix[MAX][MAX], int rows, int cols, const char *name)
 {
     int i, j;
+    printf("\nEnter values for Matrix %s:\n", name);
+    for (i = 0; i < rows; ++i) {
+        for (j = 0; j < cols; ++j) {
+            char prompt[40];
+            snprintf(prompt, sizeof prompt, "%s[%d][%d] = ", name, i + 1, j + 1);
+            if (!readInt(prompt, &matrix[i][j])) {
+                printf("Invalid matrix value. Please use whole numbers.\n");
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
 
-    printf("\n");
-
-    for (i = 0; i < rows; i++)
-    {
-        printf("   |");
-
-        for (j = 0; j < cols; j++)
-        {
+static void displayMatrix(int matrix[MAX][MAX], int rows, int cols)
+{
+    int i, j;
+    for (i = 0; i < rows; ++i) {
+        printf(" |");
+        for (j = 0; j < cols; ++j) {
             printf(" %5d", matrix[i][j]);
         }
-
         printf(" |\n");
     }
 }
 
-void matrixAddition()
+static void matrixAddition(void)
 {
     int a[MAX][MAX], b[MAX][MAX], result[MAX][MAX];
     int rows, cols, i, j;
 
-    printf("\n");
-    printLine();
-    printf("              MATRIX ADDITION             \n");
-    printLine();
-
-    printf("\nRows    : ");
-    scanf("%d", &rows);
-
-    printf("Columns : ");
-    scanf("%d", &cols);
-
-    inputMatrix(a, rows, cols, "A");
-    inputMatrix(b, rows, cols, "B");
-
-    for (i = 0; i < rows; i++)
-    {
-        for (j = 0; j < cols; j++)
-        {
-            result[i][j] = a[i][j] + b[i][j];
-        }
-    }
-
-    printf("\nMatrix A:");
-    displayMatrix(a, rows, cols);
-
-    printf("\nMatrix B:");
-    displayMatrix(b, rows, cols);
-
-    printf("\nA + B:");
-    displayMatrix(result, rows, cols);
-}
-
-void matrixMultiplication()
-{
-    int a[MAX][MAX], b[MAX][MAX], result[MAX][MAX];
-    int rows1, cols1, rows2, cols2;
-    int i, j, k;
-
-    printf("\n");
-    printLine();
-    printf("          MATRIX MULTIPLICATION            \n");
-    printLine();
-
-    printf("\nFirst Matrix\n");
-    printf("Rows    : ");
-    scanf("%d", &rows1);
-
-    printf("Columns : ");
-    scanf("%d", &cols1);
-
-    printf("\nSecond Matrix\n");
-    printf("Rows    : ");
-    scanf("%d", &rows2);
-
-    printf("Columns : ");
-    scanf("%d", &cols2);
-
-    if (cols1 != rows2)
-    {
-        printf("\n------------------------------------------\n");
-        printf("ERROR: Multiplication is not possible.\n");
-        printf("Columns of Matrix A must equal rows of Matrix B.\n");
-        printf("------------------------------------------\n");
+    printf("\n========== MATRIX ADDITION ==========\n");
+    if (!readDimensions("Matrix size", &rows, &cols) ||
+        !inputMatrix(a, rows, cols, "A") ||
+        !inputMatrix(b, rows, cols, "B")) {
         return;
     }
 
-    inputMatrix(a, rows1, cols1, "A");
-    inputMatrix(b, rows2, cols2, "B");
+    for (i = 0; i < rows; ++i) {
+        for (j = 0; j < cols; ++j) {
+            result[i][j] = a[i][j] + b[i][j];
+        }
+    }
+    printf("\nA + B:\n");
+    displayMatrix(result, rows, cols);
+}
 
-    for (i = 0; i < rows1; i++)
-    {
-        for (j = 0; j < cols2; j++)
-        {
+static void matrixMultiplication(void)
+{
+    int a[MAX][MAX], b[MAX][MAX], result[MAX][MAX];
+    int rows1, cols1, rows2, cols2, i, j, k;
+
+    printf("\n======= MATRIX MULTIPLICATION =======\n");
+    if (!readDimensions("First matrix", &rows1, &cols1) ||
+        !readDimensions("Second matrix", &rows2, &cols2)) {
+        return;
+    }
+    if (cols1 != rows2) {
+        printf("Multiplication is not possible: columns of A must equal rows of B.\n");
+        return;
+    }
+    if (!inputMatrix(a, rows1, cols1, "A") ||
+        !inputMatrix(b, rows2, cols2, "B")) {
+        return;
+    }
+
+    for (i = 0; i < rows1; ++i) {
+        for (j = 0; j < cols2; ++j) {
             result[i][j] = 0;
-
-            for (k = 0; k < cols1; k++)
-            {
+            for (k = 0; k < cols1; ++k) {
                 result[i][j] += a[i][k] * b[k][j];
             }
         }
     }
-
-    printf("\nMatrix A:");
-    displayMatrix(a, rows1, cols1);
-
-    printf("\nMatrix B:");
-    displayMatrix(b, rows2, cols2);
-
-    printf("\nA x B:");
+    printf("\nA x B:\n");
     displayMatrix(result, rows1, cols2);
 }
 
-void matrixTranspose()
+static void matrixTranspose(void)
 {
     int matrix[MAX][MAX], transpose[MAX][MAX];
     int rows, cols, i, j;
 
-    printf("\n");
-    printLine();
-    printf("              MATRIX TRANSPOSE            \n");
-    printLine();
-
-    printf("\nRows    : ");
-    scanf("%d", &rows);
-
-    printf("Columns : ");
-    scanf("%d", &cols);
-
-    inputMatrix(matrix, rows, cols, "A");
-
-    for (i = 0; i < rows; i++)
-    {
-        for (j = 0; j < cols; j++)
-        {
+    printf("\n========= MATRIX TRANSPOSE =========\n");
+    if (!readDimensions("Matrix size", &rows, &cols) ||
+        !inputMatrix(matrix, rows, cols, "A")) {
+        return;
+    }
+    for (i = 0; i < rows; ++i) {
+        for (j = 0; j < cols; ++j) {
             transpose[j][i] = matrix[i][j];
         }
     }
-
-    printf("\nOriginal Matrix:");
-    displayMatrix(matrix, rows, cols);
-
-    printf("\nTranspose Matrix:");
+    printf("\nTranspose:\n");
     displayMatrix(transpose, cols, rows);
 }
 
-int main()
+int main(void)
 {
-    int choice;
+    int choice = 0;
+    do {
+        printf("\n==========================================\n");
+        printf("       CODEALPHA MATRIX OPERATIONS\n");
+        printf("==========================================\n");
+        printf(" [1] Matrix Addition\n [2] Matrix Multiplication\n");
+        printf(" [3] Matrix Transpose\n [4] Exit\n");
 
-    do
-    {
-        printf("\n");
-        printLine();
-        printf("        CODEALPHA MATRIX OPERATIONS        \n");
-        printLine();
-
-        printf("\n");
-        printf("   [1]  Matrix Addition\n");
-        printf("   [2]  Matrix Multiplication\n");
-        printf("   [3]  Matrix Transpose\n");
-        printf("   [4]  Exit\n");
-
-        printf("\n------------------------------------------\n");
-        printf("Select an option: ");
-        scanf("%d", &choice);
-
-        switch (choice)
-        {
-            case 1:
-                matrixAddition();
-                break;
-
-            case 2:
-                matrixMultiplication();
-                break;
-
-            case 3:
-                matrixTranspose();
-                break;
-
-            case 4:
-                printf("\n");
-                printLine();
-                printf("      Thank you for using the program!     \n");
-                printLine();
-                break;
-
-            default:
-                printf("\nInvalid choice. Please select 1 to 4.\n");
+        if (!readInt("Select an option: ", &choice)) {
+            printf("Invalid input. Please enter a number from 1 to 4.\n");
+            continue;
         }
-
-        if (choice != 4)
-        {
-            printf("\nPress ENTER to return to the menu...");
-            getchar();
-            getchar();
+        switch (choice) {
+        case 1: matrixAddition(); break;
+        case 2: matrixMultiplication(); break;
+        case 3: matrixTranspose(); break;
+        case 4: printf("Thank you for using the program!\n"); break;
+        default: printf("Invalid choice. Please select 1 to 4.\n");
         }
-
     } while (choice != 4);
 
     return 0;

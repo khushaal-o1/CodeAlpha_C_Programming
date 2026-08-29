@@ -63,7 +63,7 @@ CodeAlpha_C_Programming/
 
 ## Testing
 
-The programs are compiled with C11 warnings enabled and tested for normal operations, invalid menu input, division by zero, incompatible matrix dimensions, and out-of-range matrix sizes.
+The programs are written for C11 and include handling for normal operations, invalid menu input, division by zero, incompatible matrix dimensions, and out-of-range matrix sizes. Compile them with the warning flags shown above before submission or deployment.
 
 ## Author
 
